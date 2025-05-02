@@ -1,0 +1,31 @@
+# Build artifacts
+bin/
+lib/
+*.obj
+*.pch
+*.exe
+*.dll
+*.lib
+*.exp
+*.log
+
+# Visual Studio
+.vs/
+*.sdf
+*.opensdf
+*.suo
+*.VC.db
+*.vcxproj.user
+
+# Backup files
+*~
+*.bak
+
+# OS junk
+Thumbs.db
+.DS_Store
+
+# CMake (if you ever use it)
+build/
+CMakeFiles/
+CMakeCache.txt
