@@ -134,10 +134,10 @@ copy /Y "$(SolutionDir)x64\Debug\*.lib" "M:\lib"</Command>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="API.h" />
-    <ClInclude Include="Klasa.h" />
+    <ClInclude Include="GameLogic.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Klasa.cpp" />
+    <ClCompile Include="GameLogic.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
