@@ -1,83 +1,59 @@
 #include <SFML/Graphics.hpp>
 #include "GameLogic.h"
+#include "Menu.h" // Include your menu header
+#include <iostream>
 
 int main()
 {
-    const int cols = 16;
-    const int rows = 16;
-    const unsigned mineCount = 40;
-    const int tileSize = 32;
-
-    // 1) Load tileset
-    sf::Texture tileset;
-    if (!tileset.loadFromFile("assets/tileset.png"))
-        return -1;
-
-    // 2) Init game logic
-    Minesweeper::Game game;
-    game.initialize(cols, rows, mineCount);
-
-    // 3) Create window
+    // 1) Create window early so Menu and Game can both use it
     sf::RenderWindow window(
-        sf::VideoMode({ cols * tileSize, rows * tileSize }),
+        sf::VideoMode({ 800, 600 }),
         "Minesweeper");
 
-    sf::Sprite sprite(tileset);
+    try {
+        // 2) Show menu
+        Menu menu(window);
 
-    // 4) Main loop
-    while (window.isOpen())
-    {
-        // — SFML 3.0 event loop
-        while (auto event = window.pollEvent())
-        {
-            if (event->is<sf::Event::Closed>())
-                window.close();
+        while (window.isOpen() && !menu.shouldStartGame()) {
+            while (auto event = window.pollEvent()) {
+                if (event->is<sf::Event::Closed>())
+                    window.close();
 
-            // 2) Mouse button pressed
-            if (auto* mouse = event->getIf<sf::Event::MouseButtonPressed>())
-            {
-                // MouseButtonEvent has .button, .x, .y :contentReference[oaicite:0]{index=0}
-                int x = mouse->position.x / tileSize;
-                int y = mouse->position.y / tileSize;
-
-                if (x >= 0 && x < cols && y >= 0 && y < rows)
-                {
-                    if (mouse->button == sf::Mouse::Button::Left)
-                        game.reveal(x, y);
-                    else if (mouse->button == sf::Mouse::Button::Right)
-                        game.toggleFlag(x, y);
-                }
+                menu.handleEvent(*event);
             }
+
+            window.clear();
+            menu.draw();
+            window.display();
         }
 
-        // — draw grid
-        window.clear();
-        auto& grid = game.getGrid();
+        if (!window.isOpen()) return 0; // User closed window
 
-        for (int y = 0; y < rows; ++y)
-            for (int x = 0; x < cols; ++x)
-            {
-                const auto& cell = grid[y][x];
-                int tu = 0;
+        // --- Game initialization would go here ---
 
-                switch (cell.state)
-                {
-                case Minesweeper::CellState::Hidden:     tu = 0; break;
-                case Minesweeper::CellState::Flagged:    tu = 1; break;
-                case Minesweeper::CellState::Questioned: tu = 2; break;
-                case Minesweeper::CellState::Revealed:
-                    tu = cell.hasMine ? 3 : 4 + cell.adjacentMines;
-                    break;
-                }
+        /*
+        const int cols = menu.getGridWidth();
+        const int rows = menu.getGridHeight();
+        const unsigned mineCount = 40; // or adjust based on size
+        const int tileSize = 32;
 
-                sprite.setTextureRect(
-                    sf::IntRect({ tu * tileSize, 0 }, { tileSize, tileSize })
-                );
-                sprite.setPosition(sf::Vector2f{ float(x * tileSize), float(y * tileSize) });
-                window.draw(sprite);
-            }
+        sf::Texture tileset;
+        if (!tileset.loadFromFile("assets/tileset.png"))
+            return -1;
 
-        window.display();
+        Minesweeper::Game game;
+        game.initialize(cols, rows, mineCount);
+
+        sf::Sprite sprite(tileset);
+
+        // Main game loop...
+        */
+
+    }
+    catch (const std::exception& e) {
+        // Error loading font or other assets
+        std::cerr << "Error: " << e.what() << std::endl;
+        return -1;
     }
 
     return 0;
