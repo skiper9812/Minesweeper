@@ -113,7 +113,7 @@
     <PostBuildEvent>
       <Command>copy /Y "$(ProjectDir)*.h" "M:\include"
 copy /Y "$(SolutionDir)x64\Debug\*.dll" "M:\bin"
-copy /Y "$(SolutionDir)x64\Debug\*lib" "M:\lib"</Command>
+copy /Y "$(SolutionDir)x64\Debug\*.lib" "M:\lib"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

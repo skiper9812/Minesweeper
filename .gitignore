@@ -1,6 +1,7 @@
 # Build artifacts
 bin/
 lib/
+doc/
 *.obj
 *.pch
 *.exe
@@ -8,6 +9,7 @@ lib/
 *.lib
 *.exp
 *.log
+
 
 # Visual Studio
 .vs/
@@ -29,3 +31,7 @@ Thumbs.db
 build/
 CMakeFiles/
 CMakeCache.txt
+
+#System Files
+System Volume Information/
+$RECYCLE.BIN/
