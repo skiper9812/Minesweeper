@@ -8,7 +8,8 @@ int main()
     // 1) Create window early so Menu and Game can both use it
     sf::RenderWindow window(
         sf::VideoMode({ 800, 600 }),
-        "Minesweeper");
+        "Minesweeper",
+        sf::Style::Titlebar | sf::Style::Close);
 
     try {
         // 2) Show menu

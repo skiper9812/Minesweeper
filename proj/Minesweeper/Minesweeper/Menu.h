@@ -7,11 +7,13 @@ class Menu {
 public:
     Menu(sf::RenderWindow& window); // No font passed
     void handleEvent(const sf::Event& event);
+    void updateSelectionVisuals();
     void draw();
 
     bool shouldStartGame() const;
     unsigned int getGridWidth() const;
     unsigned int getGridHeight() const;
+    int selectedIndex = 0; // Index of the currently selected button
 
 private:
     void updateGridLabel();
@@ -22,10 +24,15 @@ private:
 
     // Use std::optional instead of smart pointers
     std::optional<sf::Text> title;
+    std::optional<sf::Text> startButton;
+    std::optional<sf::Text> configButton;
+    std::optional<sf::Text> creditsButton;
+    std::optional<sf::Text> exitButton;
     std::optional<sf::Text> gridLabel;
     std::optional<sf::Text> minusButton;
     std::optional<sf::Text> plusButton;
-    std::optional<sf::Text> startButton;
+
+    std::vector<std::optional<sf::Text>*> menuButtons; // vector of pointers to the optionals
 
     unsigned int gridSize = 16;
     const unsigned int minSize = 8;
