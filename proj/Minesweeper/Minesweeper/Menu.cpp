@@ -37,14 +37,14 @@ Menu::Menu(sf::RenderWindow& window) : windowRef(window)
     configButton->setOrigin(configBounds.size / 2.f);
     configButton->setPosition(sf::Vector2f(windowWidth / 2.f, 240.f));
 
-    // Credits Button (commented for now)
+    // Credits Button
     creditsButton = sf::Text(font, "Credits", 32);
     creditsButton->setFillColor(sf::Color::Yellow);
     sf::FloatRect creditsBounds = creditsButton->getLocalBounds();
     creditsButton->setOrigin(creditsBounds.size / 2.f);
     creditsButton->setPosition(sf::Vector2f(windowWidth / 2.f, 300.f));
 
-    // Exit Button (commented for now)
+    // Exit Button
     exitButton = sf::Text(font, "Exit", 32);
     exitButton->setFillColor(sf::Color::Yellow);
     sf::FloatRect exitBounds = exitButton->getLocalBounds();
@@ -59,6 +59,8 @@ Menu::Menu(sf::RenderWindow& window) : windowRef(window)
     */
 
     menuButtons = { &startButton, &configButton, &creditsButton, &exitButton };
+    credits = std::make_unique<Credits>(windowRef, font);
+    config = std::make_unique<Config>(windowRef, font);
     updateSelectionVisuals();
 }
 
@@ -96,6 +98,11 @@ bool Menu::isMouseOver(const sf::Text& text, sf::Vector2f mousePos) const {
 }
 
 void Menu::handleEvent(const sf::Event& event) {
+    if(inConfig)
+        config->handleEvent(event, returnToMenu);
+    else if(inCredits)
+        credits->handleEvent(event, returnToMenu);
+    else 
     if (event.is<sf::Event::KeyPressed>()) {
         auto key = event.getIf<sf::Event::KeyPressed>()->code;
 
@@ -113,13 +120,17 @@ void Menu::handleEvent(const sf::Event& event) {
                 std::cout << "Start Game selected\n";
                 break;
             case 1:
+                inConfig = !inConfig;
+                config->setSelectedIndex(0);
                 std::cout << "Config selected\n";
                 break;
             case 2:
-                std::cout << "Credits selected\n";
+                inCredits = !inCredits;
+                std::cout << (inCredits ? "Entered Credits" : "Left Credits") << "\n";
                 break;
             case 3:
                 std::cout << "Exit Game selected\n";
+                windowRef.close();
                 break;
             default:
                 break;
@@ -148,11 +159,7 @@ void Menu::handleEvent(const sf::Event& event) {
     }*/
 }
 
-
-void Menu::draw() {
-    // Draw title if it exists
-    if (title) windowRef.draw(*title);
-
+void Menu::drawMenuButtons() {
     //Drawing arrows next to selected option
     for (size_t i = 0; i < menuButtons.size(); ++i) {
         if (menuButtons[i] && menuButtons[i]->has_value()) {
@@ -167,7 +174,7 @@ void Menu::draw() {
                 float textHeight = bounds.size.y;
 
                 // Create left arrow
-                sf::Text leftArrow(font, "=>" , text.getCharacterSize());
+                sf::Text leftArrow(font, "=>", text.getCharacterSize());
                 leftArrow.setFillColor(sf::Color::Green);
                 sf::FloatRect leftBounds = leftArrow.getLocalBounds();
                 leftArrow.setOrigin(leftBounds.position + leftBounds.size / 2.f);
@@ -186,6 +193,31 @@ void Menu::draw() {
         }
     }
 }
+
+
+void Menu::draw() {
+    windowRef.clear();
+
+    // Draw title if it exists
+    if (title) windowRef.draw(*title);
+
+    if (returnToMenu) {
+        inCredits = false;
+        inConfig = false;
+        returnToMenu = false;
+    }
+
+    if (inCredits) {
+        credits->draw();
+    }
+    else if (inConfig) {
+        config->draw();
+    }
+    else {
+        drawMenuButtons();
+    }
+}
+
 
 
 bool Menu::shouldStartGame() const {

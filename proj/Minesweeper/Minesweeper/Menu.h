@@ -1,5 +1,7 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include "Credits.h"
+#include "Config.h"
 #include <string>
 #include <optional>
 
@@ -8,6 +10,7 @@ public:
     Menu(sf::RenderWindow& window); // No font passed
     void handleEvent(const sf::Event& event);
     void updateSelectionVisuals();
+    void drawMenuButtons();
     void draw();
 
     bool shouldStartGame() const;
@@ -32,6 +35,8 @@ private:
     std::optional<sf::Text> minusButton;
     std::optional<sf::Text> plusButton;
 
+    std::unique_ptr<Credits> credits;
+    std::unique_ptr<Config> config;
     std::vector<std::optional<sf::Text>*> menuButtons; // vector of pointers to the optionals
 
     unsigned int gridSize = 16;
@@ -39,4 +44,8 @@ private:
     const unsigned int maxSize = 32;
 
     bool startGame = false;
+    bool inCredits = false;
+    bool inConfig = false;
+    bool returnToMenu = false;
+    
 };
