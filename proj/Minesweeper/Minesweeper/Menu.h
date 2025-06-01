@@ -14,8 +14,7 @@ public:
     void draw();
 
     bool shouldStartGame() const;
-    unsigned int getGridWidth() const;
-    unsigned int getGridHeight() const;
+    unsigned int getGridSize() const;
     int selectedIndex = 0; // Index of the currently selected button
 
 private:
@@ -39,9 +38,7 @@ private:
     std::unique_ptr<Config> config;
     std::vector<std::optional<sf::Text>*> menuButtons; // vector of pointers to the optionals
 
-    unsigned int gridSize = 16;
-    const unsigned int minSize = 8;
-    const unsigned int maxSize = 32;
+    unsigned int gridSize = 8;
 
     bool startGame = false;
     bool inCredits = false;

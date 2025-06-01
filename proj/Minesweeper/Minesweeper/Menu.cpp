@@ -117,7 +117,10 @@ void Menu::handleEvent(const sf::Event& event) {
         else if (key == sf::Keyboard::Key::Enter) {
             switch (selectedIndex) {
             case 0:
-                std::cout << "Start Game selected\n";
+                std::cout << "Start Game selected. Grid size: "
+                    << config->getGridSize() << "x" << config->getGridSize() << "\n";
+                gridSize = config->getGridSize();
+                startGame = true;
                 break;
             case 1:
                 inConfig = !inConfig;
@@ -224,10 +227,6 @@ bool Menu::shouldStartGame() const {
     return startGame;
 }
 
-unsigned int Menu::getGridWidth() const {
-    return gridSize;
-}
-
-unsigned int Menu::getGridHeight() const {
+unsigned int Menu::getGridSize() const {
     return gridSize;
 }

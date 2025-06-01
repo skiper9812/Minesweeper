@@ -22,8 +22,8 @@ namespace Minesweeper {
     // Main game logic class
     class EXPORT_API Game {
     public:
-        // Initialize a new game with given dimensions and mine count
-        void initialize(unsigned int width, unsigned int height, unsigned int mines);
+        // Initialize a new game with given size
+        void initialize(unsigned int size);
 
         // Reveal the cell at (x, y); returns false if a mine was revealed
         bool reveal(unsigned int x, unsigned int y);
@@ -38,8 +38,10 @@ namespace Minesweeper {
 
         // Check for win condition (all non-mine cells revealed)
         bool checkWin() const;
+        bool isGameOver() const;
 
     private:
+        bool gameOver = false;
         unsigned int width = 0;
         unsigned int height = 0;
         unsigned int mineCount = 0;

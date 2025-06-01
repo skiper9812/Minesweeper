@@ -1,11 +1,11 @@
 #include <SFML/Graphics.hpp>
 #include "GameLogic.h"
-#include "Menu.h" // Include your menu header
+#include "Menu.h"
 #include <iostream>
 
 int main()
 {
-    // 1) Create window early so Menu and Game can both use it
+    // 1) Create window for both Menu and Game
     sf::RenderWindow window(
         sf::VideoMode({ 800, 600 }),
         "Minesweeper",
@@ -14,7 +14,6 @@ int main()
     try {
         // 2) Show menu
         Menu menu(window);
-
         while (window.isOpen() && !menu.shouldStartGame()) {
             while (auto event = window.pollEvent()) {
                 if (event->is<sf::Event::Closed>())
@@ -28,31 +27,96 @@ int main()
             window.display();
         }
 
-        if (!window.isOpen()) return 0; // User closed window
+        if (!window.isOpen()) return 0;
 
-        // --- Game initialization would go here ---
-
-        /*
-        const int cols = menu.getGridWidth();
-        const int rows = menu.getGridHeight();
-        const unsigned mineCount = 40; // or adjust based on size
+        // 3) Initialize game
+        const unsigned int size = menu.getGridSize();
         const int tileSize = 32;
 
         sf::Texture tileset;
-        if (!tileset.loadFromFile("assets/tileset.png"))
+        if (!tileset.loadFromFile("assets/tileset.png")) {
+            std::cerr << "Failed to load tileset.png\n";
             return -1;
+        }
 
         Minesweeper::Game game;
-        game.initialize(cols, rows, mineCount);
+        game.initialize(size);
+        sf::Sprite tileSprite(tileset);
 
-        sf::Sprite sprite(tileset);
+        // 4) Game loop
+        while (window.isOpen()) {
+            while (auto event = window.pollEvent()) {
+                if (event->is<sf::Event::Closed>())
+                    window.close();
+                if (!game.isGameOver()) {
+                    if (event->is<sf::Event::MouseButtonPressed>()) {
+                        auto mouse = event->getIf<sf::Event::MouseButtonPressed>();
+                        int MouseX = mouse->position.x / tileSize;
+                        int MouseY = mouse->position.y / tileSize;
 
-        // Main game loop...
-        */
+                        if (mouse->button == sf::Mouse::Button::Left) {
+                            bool safe = game.reveal(MouseX, MouseY);
+                            if (!safe)
+                                std::cout << "You hit a mine!\n";
 
+                            std::cout << "Clicked Left\n" << safe;
+                        }
+                        else if (mouse->button == sf::Mouse::Button::Right) {
+                            game.toggleFlag(MouseX, MouseY);
+                            std::cout << "Clicked Right\n";
+                        }
+
+                        if (game.checkWin()) {
+                            std::cout << "You won!\n";
+                        }
+                    }
+                }
+            }
+
+            window.clear();
+
+            // Calculate centered position for the grid
+            sf::Vector2u windowSize = window.getSize();
+            int gridPixelWidth = size * tileSize;
+            int gridPixelHeight = size * tileSize;
+
+            float offsetX = (windowSize.x - gridPixelWidth) / 2.f;
+            float offsetY = (windowSize.y - gridPixelHeight) / 2.f;
+
+
+            // 5) Draw game grid
+            const auto& grid = game.getGrid();
+            for (int y = 0; y < size; ++y) {
+                for (int x = 0; x < size; ++x) {
+                    const auto& cell = grid[y][x];
+
+                    int tileIndex = 0; // Default: hidden
+                    if (cell.state == Minesweeper::CellState::Revealed) {
+                        if (cell.hasMine)
+                            tileIndex = 3; //Mine
+                        else
+                            tileIndex = 4 + cell.adjacentMines; //Numbers 0-8
+                    }
+                    else if (cell.state == Minesweeper::CellState::Flagged) {
+                        tileIndex = 1; //Flag
+                    }
+                    else if (cell.state == Minesweeper::CellState::Questioned) {
+                        tileIndex = 2; //Question mark
+                    }
+
+                    tileSprite.setTextureRect(sf::IntRect({ tileIndex * tileSize, 0 }, { tileSize, tileSize }));
+                    tileSprite.setPosition({
+                        offsetX + static_cast<float>(x * tileSize),
+                        offsetY + static_cast<float>(y * tileSize)
+                        });
+                    window.draw(tileSprite);
+                }
+            }
+
+            window.display();
+        }
     }
     catch (const std::exception& e) {
-        // Error loading font or other assets
         std::cerr << "Error: " << e.what() << std::endl;
         return -1;
     }

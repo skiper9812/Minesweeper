@@ -1,21 +1,22 @@
 #include "GameLogic.h"
 #include <random>
+#include <iostream>
 
 namespace Minesweeper {
 
-    void Game::initialize(unsigned int w, unsigned int h, unsigned int mines) {
-        width = w;
-        height = h;
-        mineCount = mines;
+    void Game::initialize(unsigned int size) {
+        width = size; height = size;
+        mineCount = size * size * 0.175;
+        std::cout << "Mine count: " << mineCount << std::endl;
 
         // Resize grid to height rows of width columns
-        grid.assign(height, std::vector<Cell>(width));
+        grid.assign(size, std::vector<Cell>(size));
 
         // Place mines randomly
         std::random_device rd;
         std::mt19937 gen(rd());
-        std::uniform_int_distribution<> distX(0, width - 1);
-        std::uniform_int_distribution<> distY(0, height - 1);
+        std::uniform_int_distribution<> distX(0, size - 1);
+        std::uniform_int_distribution<> distY(0, size - 1);
 
         unsigned int placed = 0;
         while (placed < mineCount) {
@@ -32,6 +33,14 @@ namespace Minesweeper {
             for (unsigned int x = 0; x < width; ++x) {
                 grid[y][x].adjacentMines = countAdjacent(x, y);
             }
+        }
+
+        std::cout << "\nMinefield Map (Debug View):\n";
+        for (unsigned int y = 0; y < grid.size(); ++y) {
+            for (unsigned int x = 0; x < grid[y].size(); ++x) {
+                std::cout << (grid[y][x].hasMine ? " *" : " .");
+            }
+            std::cout << '\n';
         }
     }
 
@@ -83,6 +92,7 @@ namespace Minesweeper {
         // If it's a mine, game over
         if (cell.hasMine) {
             cell.state = CellState::Revealed;
+            gameOver = true;
             return false;
         }
 
@@ -127,6 +137,10 @@ namespace Minesweeper {
         }
         // Win if all non-mine cells are revealed
         return (revealedCount == (width * height - mineCount));
+    }
+
+    bool Game::isGameOver() const { 
+        return gameOver;
     }
 
 } // namespace Minesweeper
