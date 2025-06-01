@@ -43,6 +43,14 @@ int main()
         game.initialize(size);
         sf::Sprite tileSprite(tileset);
 
+        // Calculate centered position for the grid
+        sf::Vector2u windowSize = window.getSize();
+        int gridPixelWidth = size * tileSize;
+        int gridPixelHeight = size * tileSize;
+
+        float offsetX = (windowSize.x - gridPixelWidth) / 2.f;
+        float offsetY = (windowSize.y - gridPixelHeight) / 2.f;
+
         // 4) Game loop
         while (window.isOpen()) {
             while (auto event = window.pollEvent()) {
@@ -51,8 +59,8 @@ int main()
                 if (!game.isGameOver()) {
                     if (event->is<sf::Event::MouseButtonPressed>()) {
                         auto mouse = event->getIf<sf::Event::MouseButtonPressed>();
-                        int MouseX = mouse->position.x / tileSize;
-                        int MouseY = mouse->position.y / tileSize;
+                        int MouseX = (mouse->position.x - static_cast<int>(offsetX)) / tileSize;
+                        int MouseY = (mouse->position.y - static_cast<int>(offsetY)) / tileSize;
 
                         if (mouse->button == sf::Mouse::Button::Left) {
                             bool safe = game.reveal(MouseX, MouseY);
@@ -74,15 +82,6 @@ int main()
             }
 
             window.clear();
-
-            // Calculate centered position for the grid
-            sf::Vector2u windowSize = window.getSize();
-            int gridPixelWidth = size * tileSize;
-            int gridPixelHeight = size * tileSize;
-
-            float offsetX = (windowSize.x - gridPixelWidth) / 2.f;
-            float offsetY = (windowSize.y - gridPixelHeight) / 2.f;
-
 
             // 5) Draw game grid
             const auto& grid = game.getGrid();
