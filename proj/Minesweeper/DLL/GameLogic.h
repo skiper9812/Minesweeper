@@ -2,15 +2,18 @@
 #include "API.h"
 
 #include <vector>
+#include <unordered_set>
 
 namespace Minesweeper {
-    // Possible states of a cell
-    enum class CellState {
-        Hidden,
-        Revealed,
-        Flagged,
-        Questioned
+
+    struct pair_hash {
+        std::size_t operator()(const std::pair<unsigned int, unsigned int>& p) const {
+            return std::hash<unsigned int>()(p.first) ^ (std::hash<unsigned int>()(p.second) << 1);
+        }
     };
+
+    // Possible states of a cell
+    enum class CellState { Hidden, Revealed, Flagged, Questioned }; 
 
     // Represents a single cell in the grid
     struct Cell {
@@ -31,26 +34,34 @@ namespace Minesweeper {
         // Toggle flag state on the cell at (x, y)
         void toggleFlag(unsigned int x, unsigned int y);
 
-        // Accessors
-        unsigned int getWidth() const;
-        unsigned int getHeight() const;
-        const std::vector<std::vector<Cell>>& getGrid() const;
-
         // Check for win condition (all non-mine cells revealed)
         bool checkWin() const;
         bool isGameOver() const;
 
-    private:
-        bool gameOver = false;
-        unsigned int width = 0;
-        unsigned int height = 0;
-        unsigned int mineCount = 0;
-        std::vector<std::vector<Cell>> grid;  // 2D grid of cells
+        // Accessors
+        const std::vector<std::vector<Cell>>& getGrid() const;
 
-        // Helper: counts mines adjacent to (x, y)
+    private:
+        std::vector<std::vector<Cell>> grid;  // 2D grid of cells
+        unsigned int size = 0, safeParam = 2;
+        unsigned int mineCount = 0;
+        bool isInitialized = false;
+        bool gameOver = false;
+
+        
+        std::pair<unsigned int, unsigned int> firstClickPos;
+
+        // Recursively reveal neighbors if safe
+        void floodFillReveal(unsigned int x, unsigned int y);
+
+        // Counts mines adjacent to (x, y)
         unsigned int countAdjacent(unsigned int x, unsigned int y) const;
 
-        // Helper: recursively reveal neighbors if safe
-        void floodFillReveal(unsigned int x, unsigned int y);
+        // Generates Safe Zone based on first click position
+        std::unordered_set<std::pair<unsigned int, unsigned int>, pair_hash>
+            generateSafeZone(unsigned int startX, unsigned int startY, unsigned int count) const;
+
+        // Place mines based on the Safe Zone
+        void placeMines(unsigned int safeX, unsigned int safeY);
     };
 }

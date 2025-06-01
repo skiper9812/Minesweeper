@@ -1,47 +1,112 @@
 #include "GameLogic.h"
 #include <random>
 #include <iostream>
+#include <set>
+#include <queue>
 
 namespace Minesweeper {
 
-    void Game::initialize(unsigned int size) {
-        width = size; height = size;
-        mineCount = size * size * 0.175;
-        std::cout << "Mine count: " << mineCount << std::endl;
-
-        // Resize grid to height rows of width columns
+    void Game::initialize(unsigned int s) {
+        size = s;
         grid.assign(size, std::vector<Cell>(size));
+        isInitialized = false;  // Wait for first click
+    }
 
-        // Place mines randomly
+    std::unordered_set<std::pair<unsigned int, unsigned int>, pair_hash>
+        Game::generateSafeZone(unsigned int startX, unsigned int startY, unsigned int count) const {
+        std::unordered_set<std::pair<unsigned int, unsigned int>, pair_hash> safeZone;
+        std::queue<std::pair<unsigned int, unsigned int>> q;
+
+        q.push({ startX, startY });
+        safeZone.insert({ startX, startY });
+
+        while (!q.empty() && safeZone.size() < count) {
+            auto [x, y] = q.front(); q.pop();
+
+            for (int dy = -1; dy <= 1; ++dy) {
+                for (int dx = -1; dx <= 1; ++dx) {
+                    int nx = static_cast<int>(x) + dx;
+                    int ny = static_cast<int>(y) + dy;
+                    if (dx == 0 && dy == 0) continue;
+                    if (nx >= 0 && ny >= 0 && nx < static_cast<int>(size) && ny < static_cast<int>(size)) {
+                        std::pair<unsigned int, unsigned int> pos = { (unsigned int)nx, (unsigned int)ny };
+                        if (!safeZone.count(pos)) {
+                            safeZone.insert(pos);
+                            q.push(pos);
+                            if (safeZone.size() >= count) break;
+                        }
+                    }
+                }
+                if (safeZone.size() >= count) break;
+            }
+        }
+
+        if (safeZone.size() != count)
+            throw std::runtime_error("Failed to create a safe zone.");
+
+        return safeZone;
+    }
+
+    void Game::placeMines(unsigned int safeX, unsigned int safeY) {
+        // 1. Generate safe zone
+        auto safeZone = generateSafeZone(safeX, safeY, safeParam);
+
+        // 2. Also forbid placing mines around the safe zone
+        std::unordered_set<std::pair<unsigned int, unsigned int>, pair_hash> forbidden;
+        for (const auto& [x, y] : safeZone) {
+            for (int dy = -1; dy <= 1; ++dy) {
+                for (int dx = -1; dx <= 1; ++dx) {
+                    int nx = static_cast<int>(x) + dx;
+                    int ny = static_cast<int>(y) + dy;
+                    if (nx >= 0 && ny >= 0 && nx < static_cast<int>(size) && ny < static_cast<int>(size)) {
+                        forbidden.insert({ (unsigned int)nx, (unsigned int)ny });
+                    }
+                }
+            }
+        }
+
+        // 3. Place mines outside the forbidden area
+        mineCount = static_cast<unsigned int>(size * size * 0.175);
+        unsigned int placed = 0;
+
         std::random_device rd;
         std::mt19937 gen(rd());
         std::uniform_int_distribution<> distX(0, size - 1);
         std::uniform_int_distribution<> distY(0, size - 1);
 
-        unsigned int placed = 0;
         while (placed < mineCount) {
             unsigned int x = distX(gen);
             unsigned int y = distY(gen);
-            if (!grid[y][x].hasMine) {
+            std::pair<unsigned int, unsigned int> pos = { x, y };
+
+            if (!grid[y][x].hasMine && forbidden.count(pos) == 0) {
                 grid[y][x].hasMine = true;
                 ++placed;
             }
         }
 
-        // Compute adjacent mine counts
-        for (unsigned int y = 0; y < height; ++y) {
-            for (unsigned int x = 0; x < width; ++x) {
-                grid[y][x].adjacentMines = countAdjacent(x, y);
-            }
-        }
-
+        // 4. Debug output
         std::cout << "\nMinefield Map (Debug View):\n";
-        for (unsigned int y = 0; y < grid.size(); ++y) {
-            for (unsigned int x = 0; x < grid[y].size(); ++x) {
+        for (unsigned int y = 0; y < size; ++y) {
+            for (unsigned int x = 0; x < size; ++x) {
                 std::cout << (grid[y][x].hasMine ? " *" : " .");
             }
             std::cout << '\n';
         }
+
+        // 5. Count adjacent mines
+        for (unsigned int y = 0; y < size; ++y) {
+            for (unsigned int x = 0; x < size; ++x) {
+                grid[y][x].adjacentMines = countAdjacent(x, y);
+            }
+        }
+
+        // 6. Reveal safe zone
+        for (const auto& [x, y] : safeZone) {
+            floodFillReveal(x, y);
+        }
+
+        isInitialized = true;
     }
 
     unsigned int Game::countAdjacent(unsigned int x, unsigned int y) const {
@@ -51,7 +116,7 @@ namespace Minesweeper {
                 if (dx == 0 && dy == 0) continue;
                 int nx = static_cast<int>(x) + dx;
                 int ny = static_cast<int>(y) + dy;
-                if (nx >= 0 && nx < static_cast<int>(width) && ny >= 0 && ny < static_cast<int>(height)) {
+                if (nx >= 0 && nx < static_cast<int>(size) && ny >= 0 && ny < static_cast<int>(size)) {
                     if (grid[ny][nx].hasMine)
                         ++count;
                 }
@@ -62,7 +127,7 @@ namespace Minesweeper {
 
     void Game::floodFillReveal(unsigned int x, unsigned int y) {
         // Base cases: out of bounds or already revealed or flagged
-        if (x >= width || y >= height) return;
+        if (x >= size || y >= size) return;
         Cell& cell = grid[y][x];
         if (cell.state != CellState::Hidden) return;
 
@@ -76,7 +141,7 @@ namespace Minesweeper {
                     if (dx == 0 && dy == 0) continue;
                     int nx = static_cast<int>(x) + dx;
                     int ny = static_cast<int>(y) + dy;
-                    if (nx >= 0 && nx < static_cast<int>(width) && ny >= 0 && ny < static_cast<int>(height)) {
+                    if (nx >= 0 && nx < static_cast<int>(size) && ny >= 0 && ny < static_cast<int>(size)) {
                         floodFillReveal(static_cast<unsigned int>(nx), static_cast<unsigned int>(ny));
                     }
                 }
@@ -85,7 +150,11 @@ namespace Minesweeper {
     }
 
     bool Game::reveal(unsigned int x, unsigned int y) {
-        if (x >= width || y >= height) return true; // ignore out of bounds
+        if (!isInitialized) {
+            placeMines(x, y);
+        }
+
+        if (x >= size || y >= size) return true; // ignore out of bounds
         Cell& cell = grid[y][x];
         if (cell.state == CellState::Revealed || cell.state == CellState::Flagged) return true;
 
@@ -102,7 +171,7 @@ namespace Minesweeper {
     }
 
     void Game::toggleFlag(unsigned int x, unsigned int y) {
-        if (x >= width || y >= height) return;
+        if (x >= size || y >= size) return;
         Cell& cell = grid[y][x];
         if (cell.state == CellState::Hidden) {
             cell.state = CellState::Flagged;
@@ -113,14 +182,6 @@ namespace Minesweeper {
         else if (cell.state == CellState::Questioned) {
             cell.state = CellState::Hidden;
         }
-    }
-
-    unsigned int Game::getWidth() const {
-        return width;
-    }
-
-    unsigned int Game::getHeight() const {
-        return height;
     }
 
     const std::vector<std::vector<Cell>>& Game::getGrid() const {
@@ -136,7 +197,7 @@ namespace Minesweeper {
             }
         }
         // Win if all non-mine cells are revealed
-        return (revealedCount == (width * height - mineCount));
+        return (revealedCount == (size * size - mineCount));
     }
 
     bool Game::isGameOver() const { 
