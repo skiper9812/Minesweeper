@@ -34,9 +34,10 @@ namespace Minesweeper {
         // Toggle flag state on the cell at (x, y)
         void toggleFlag(unsigned int x, unsigned int y);
 
-        // Check for win condition (all non-mine cells revealed)
+        // Check for win/lose condition (all non-mine cells revealed)
         bool checkWin() const;
         bool isGameOver() const;
+        bool hasEnded() const;
 
         // Accessors
         const std::vector<std::vector<Cell>>& getGrid() const;

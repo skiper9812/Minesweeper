@@ -204,4 +204,8 @@ namespace Minesweeper {
         return gameOver;
     }
 
+    bool Game::hasEnded() const {
+        return gameOver || checkWin();
+    }
+
 } // namespace Minesweeper

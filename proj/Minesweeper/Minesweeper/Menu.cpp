@@ -51,13 +51,6 @@ Menu::Menu(sf::RenderWindow& window) : windowRef(window)
     exitButton->setOrigin(exitBounds.size / 2.f);
     exitButton->setPosition(sf::Vector2f(windowWidth / 2.f, 360.f));
 
-    // Comment out unused controls for now
-    /*
-    gridLabel = sf::Text(font);
-    minusButton = sf::Text(font);
-    plusButton = sf::Text(font);
-    */
-
     menuButtons = { &startButton, &configButton, &creditsButton, &exitButton };
     credits = std::make_unique<Credits>(windowRef, font);
     config = std::make_unique<Config>(windowRef, font);
@@ -141,25 +134,27 @@ void Menu::handleEvent(const sf::Event& event) {
         }
     }
 
-    /*if (event.is<sf::Event::MouseButtonPressed>()) {
-        const auto& mouse = event.getIf<sf::Event::MouseButtonPressed>();
-        sf::Vector2f mousePos = sf::Vector2f(
-            static_cast<float>(mouse->position.x),
-            static_cast<float>(mouse->position.y)
-        );
+}
 
-        if (minusButton && isMouseOver(*minusButton, mousePos) && gridSize > minSize) {
-            --gridSize;
-            updateGridLabel();
-        }
-        else if (plusButton && isMouseOver(*plusButton, mousePos) && gridSize < maxSize) {
-            ++gridSize;
-            updateGridLabel();
-        }
-        else if (startButton && isMouseOver(*startButton, mousePos)) {
-            startGame = true;
-        }
-    }*/
+void Menu::drawGameOverMessage(std::string message) {
+    // Title
+    gameOverText = sf::Text(font, message, 48);
+    gameOverText->setFillColor(sf::Color::Red);
+    gameOverText->setStyle(sf::Text::Bold);
+    sf::FloatRect gameOverBounds = gameOverText->getLocalBounds();
+    gameOverText->setOrigin(gameOverBounds.size / 2.f);
+    gameOverText->setPosition({ windowRef.getSize().x / 2.f, windowRef.getSize().y / 2.f - 250 });
+    
+
+    // Start Game Button
+    continueText = sf::Text(font, "Press Enter to continue", 32);
+    continueText->setFillColor(sf::Color::White);
+    sf::FloatRect continueTextBounds = continueText->getLocalBounds();
+    continueText->setOrigin(continueTextBounds.size / 2.f);
+    continueText->setPosition({ windowRef.getSize().x / 2.f, windowRef.getSize().y / 2.f - 210 });
+
+    windowRef.draw(*gameOverText);
+    windowRef.draw(*continueText);
 }
 
 void Menu::drawMenuButtons() {
@@ -221,7 +216,9 @@ void Menu::draw() {
     }
 }
 
-
+void Menu::endGame() {
+    startGame = false;
+}
 
 bool Menu::shouldStartGame() const {
     return startGame;

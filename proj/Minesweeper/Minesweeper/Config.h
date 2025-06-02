@@ -26,6 +26,6 @@ private:
 
     int gridSize = 8;
     const int minSize = 5;
-    const int maxSize = 18; //Do not increase until you don't change window size
+    const int maxSize = 10;
     int selectedIndex = 0;
 };

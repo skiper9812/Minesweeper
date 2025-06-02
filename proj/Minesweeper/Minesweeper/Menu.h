@@ -11,7 +11,9 @@ public:
     void handleEvent(const sf::Event& event);
     void updateSelectionVisuals();
     void drawMenuButtons();
+    void drawGameOverMessage(std::string message);
     void draw();
+    void endGame();
 
     bool shouldStartGame() const;
     unsigned int getGridSize() const;
@@ -31,14 +33,14 @@ private:
     std::optional<sf::Text> creditsButton;
     std::optional<sf::Text> exitButton;
     std::optional<sf::Text> gridLabel;
-    std::optional<sf::Text> minusButton;
-    std::optional<sf::Text> plusButton;
+    std::optional<sf::Text> gameOverText;
+    std::optional<sf::Text> continueText;
 
     std::unique_ptr<Credits> credits;
     std::unique_ptr<Config> config;
     std::vector<std::optional<sf::Text>*> menuButtons; // vector of pointers to the optionals
 
-    unsigned int gridSize = 8;
+    unsigned int gridSize = 7;
 
     bool startGame = false;
     bool inCredits = false;
