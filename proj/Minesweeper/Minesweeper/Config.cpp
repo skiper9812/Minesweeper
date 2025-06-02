@@ -1,10 +1,66 @@
 #include "Config.h"
 #include <iostream>
 #include <sstream>
+#include <fstream>
+
+void Config::saveToFile(const std::string& filename) const {
+    try {
+        std::ofstream file(filename);
+        if (!file) {
+            throw std::ios_base::failure("Failed to open file for writing.");
+        }
+
+        file << "gridSize:" << gridSize << ";\n";
+
+        if (!file) {
+            throw std::ios_base::failure("Failed to write to file.");
+        }
+    }
+    catch (const std::exception& e) {
+        std::cerr << "Error saving config: " << e.what() << std::endl;
+    }
+}
+
+
+void Config::loadFromFile(const std::string& filename) {
+    try {
+        std::ifstream file(filename);
+        if (!file) {
+            throw std::ios_base::failure("Config file not found.");
+        }
+
+        std::string line;
+        while (std::getline(file, line)) {
+            std::istringstream iss(line);
+            std::string key, valueStr;
+
+            if (std::getline(iss, key, ':') && std::getline(iss, valueStr, ';')) {
+                if (key == "gridSize") {
+                    int value = std::stoi(valueStr);
+                    if (value >= minSize && value <= maxSize) {
+                        gridSize = value;
+                    }
+                    else {
+                        throw std::runtime_error("Grid size out of valid range.");
+                    }
+                }
+            }
+        }
+
+        updateGridText();
+    }
+    catch (const std::exception& e) {
+        std::cerr << "Error loading config: " << e.what() << std::endl;
+        gridSize = defaultGridSize; // Fallback default
+        updateGridText();
+    }
+}
 
 Config::Config(sf::RenderWindow& window, const sf::Font& font)
     : windowRef(window), fontRef(&font), selectedIndex(0)
 {
+    loadFromFile();
+
     // Label
     gridLabel = sf::Text(font, "Choose grid size", 32);
     gridLabel->setFillColor(sf::Color::White);
@@ -29,6 +85,8 @@ Config::Config(sf::RenderWindow& window, const sf::Font& font)
 
 void Config::updateGridText() {
     if (gridText) {
+        saveToFile();
+
         std::ostringstream ss;
         ss << gridSize << "x" << gridSize;
         gridText->setString(ss.str());

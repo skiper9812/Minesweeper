@@ -16,6 +16,8 @@ private:
     void updateGridText();
     void updateSelectionVisuals();
     void drawArrows(const sf::Text& targetText, float yOffset);
+    void saveToFile(const std::string& filename = "config.txt") const;
+    void loadFromFile(const std::string& filename = "config.txt");
 
     sf::RenderWindow& windowRef;
     const sf::Font* fontRef = nullptr;
@@ -24,7 +26,7 @@ private:
     std::optional<sf::Text> gridText;
     std::optional<sf::Text> returnButton;
 
-    int gridSize = 8;
+    int defaultGridSize = 7, gridSize = defaultGridSize;
     const int minSize = 5;
     const int maxSize = 10;
     int selectedIndex = 0;
