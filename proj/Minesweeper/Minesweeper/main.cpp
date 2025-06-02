@@ -94,18 +94,14 @@ int main()
                     for (int x = 0; x < size; ++x) {
                         const auto& cell = grid[y][x];
 
-                        int tileIndex = 0; // Default: hidden
-                        if (cell.state == Minesweeper::CellState::Revealed) {
-                            if (cell.hasMine)
-                                tileIndex = 3; //Mine
-                            else
-                                tileIndex = 4 + cell.adjacentMines; //Numbers 0-8
-                        }
-                        else if (cell.state == Minesweeper::CellState::Flagged) {
-                            tileIndex = 1; //Flag
-                        }
-                        else if (cell.state == Minesweeper::CellState::Questioned) {
-                            tileIndex = 2; //Question mark
+                        int tileIndex = 0;
+                        switch (cell.state) {
+                        case Minesweeper::CellState::Hidden:     tileIndex = 0; break;
+                        case Minesweeper::CellState::Flagged:    tileIndex = 1; break;
+                        case Minesweeper::CellState::Questioned: tileIndex = 2; break;
+                        case Minesweeper::CellState::Revealed:
+                            tileIndex = cell.hasMine ? 3 : 4 + cell.adjacentMines;
+                            break;
                         }
 
                         tileSprite.setTextureRect(sf::IntRect({ tileIndex * tileSize, 0 }, { tileSize, tileSize }));

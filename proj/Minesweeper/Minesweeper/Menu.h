@@ -26,7 +26,6 @@ private:
     sf::RenderWindow& windowRef;
     sf::Font font;
 
-    // Use std::optional instead of smart pointers
     std::optional<sf::Text> title;
     std::optional<sf::Text> startButton;
     std::optional<sf::Text> configButton;
